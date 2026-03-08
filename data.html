@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Data - HireSync</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="page-header">
+      <h1>HireSync</h1>
+      <nav class="tabs" aria-label="Main navigation">
+        <a class="tab" href="index.html">Homepage</a>
+        <a class="tab" href="calendar.html">Calendar</a>
+        <a class="tab" href="newhires.html">New Hires</a>
+        <a class="tab active" href="data.html" aria-current="page">Data</a>
+        <a class="tab" href="trainings.html">Trainings</a>
+        <a class="tab" href="settings.html">Settings</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="panel" aria-live="polite">
+        <div class="data-page-header">
+          <h2>New Hire Data Dashboard</h2>
+          <button id="exportDataTopBtn" type="button" class="primary">Export</button>
+        </div>
+        <p>Click any chart to drill deeper into RAID performance details.</p>
+      </section>
+
+      <section class="data-dashboard-layout">
+        <article class="panel chart-panel">
+          <h3>Overall Performance</h3>
+          <canvas id="performanceDonut" width="360" height="360" aria-label="Good vs at-risk new hires"></canvas>
+        </article>
+
+        <article class="panel chart-panel">
+          <h3>RAID Color Distribution</h3>
+          <canvas id="raidBarChart" width="360" height="360" aria-label="RAID color bar chart"></canvas>
+        </article>
+
+        <article class="panel chart-panel">
+          <h3>Department Risk View</h3>
+          <canvas id="departmentRiskChart" width="360" height="360" aria-label="Department risk chart"></canvas>
+        </article>
+
+        <article class="panel chart-panel">
+          <h3>Mandatory Training</h3>
+          <canvas id="trainingStatusChart" width="360" height="360" aria-label="Mandatory training completion chart"></canvas>
+        </article>
+
+        <aside class="panel data-drilldown" id="dataDrilldown">
+          <h3 id="dataDrilldownTitle">Dashboard Details</h3>
+          <ul id="dataDrilldownList"></ul>
+        </aside>
+      </section>
+
+      <section class="panel" aria-live="polite">
+        <h3>Snapshot</h3>
+        <div class="kpi-grid" id="kpiGrid"></div>
+      </section>
+
+    </main>
+
+    <div id="exportModalBackdrop" class="modal-backdrop hidden" role="presentation">
+      <div class="modal export-modal" role="dialog" aria-modal="true" aria-labelledby="export-modal-title">
+        <div class="modal-header">
+          <h3 id="export-modal-title">Export Data</h3>
+          <button id="closeExportModal" class="close-btn" aria-label="Close">✕</button>
+        </div>
+
+        <form id="exportForm" class="export-grid">
+          <label>
+            Department
+            <select id="exportDepartment">
+              <option value="all">All Departments</option>
+            </select>
+          </label>
+
+          <label>
+            Training Status
+            <select id="exportTrainingStatus">
+              <option value="all">All</option>
+              <option value="completed">Completed</option>
+              <option value="notCompleted">Not Completed</option>
+            </select>
+          </label>
+
+          <label>
+            Performance Group
+            <select id="exportPerformance">
+              <option value="all">All</option>
+              <option value="good">Doing Well</option>
+              <option value="risk">Not Doing Too Well</option>
+            </select>
+          </label>
+
+          <label>
+            Export Format
+            <select id="exportFormat">
+              <option value="csv">CSV</option>
+              <option value="json">JSON</option>
+            </select>
+          </label>
+
+          <fieldset class="full-width export-raid-filter">
+            <legend>RAID Colors</legend>
+            <div class="raid-filter-tools">
+              <button id="raidSelectAll" type="button" class="secondary">Select All</button>
+              <button id="raidClearAll" type="button" class="secondary">Clear All</button>
+            </div>
+            <label><input type="checkbox" class="exportRaidColor" value="Red" checked /> Red</label>
+            <label><input type="checkbox" class="exportRaidColor" value="Amber" checked /> Amber</label>
+            <label><input type="checkbox" class="exportRaidColor" value="Green" checked /> Green</label>
+            <label><input type="checkbox" class="exportRaidColor" value="Blue" checked /> Blue</label>
+            <label><input type="checkbox" class="exportRaidColor" value="Purple" checked /> Purple</label>
+          </fieldset>
+
+          <div class="full-width export-actions">
+            <div id="exportMatchCount" class="export-match-count">Matching records: 0</div>
+            <button type="submit" class="primary">Export</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script src="data.js"></script>
+  </body>
+</html>

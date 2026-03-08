@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Trainings - HireSync</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="page-header">
+      <h1>HireSync</h1>
+      <nav class="tabs" aria-label="Main navigation">
+        <a class="tab" href="index.html">Homepage</a>
+        <a class="tab" href="calendar.html">Calendar</a>
+        <a class="tab" href="newhires.html">New Hires</a>
+        <a class="tab" href="data.html">Data</a>
+        <a class="tab active" href="trainings.html" aria-current="page">Trainings</a>
+        <a class="tab" href="settings.html">Settings</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="panel" aria-live="polite">
+        <h2>Trainings</h2>
+        <p>Track completed, not completed, and in-progress trainings. Click a training to view session dates and attendance.</p>
+      </section>
+
+      <section class="trainings-layout">
+        <article class="panel chart-panel">
+          <h3>Training Status Overview</h3>
+          <canvas id="trainingOverviewChart" width="380" height="320" aria-label="Training status chart"></canvas>
+          <p class="chart-hint">Click a bar to filter the training list by status.</p>
+        </article>
+
+        <article class="panel trainings-list-panel">
+          <h3>Training Catalog</h3>
+          <ul id="trainingList" class="training-list"></ul>
+        </article>
+      </section>
+
+      <section class="panel training-detail-panel" id="trainingDetailPanel">
+        <h3 id="trainingDetailTitle">Training Details</h3>
+
+        <div class="training-detail-grid">
+          <section class="training-sessions-box">
+            <h4>Session Dates (Past & Upcoming)</h4>
+            <ul id="trainingSessionDates" class="session-date-list"></ul>
+          </section>
+
+          <section class="training-documents-box">
+            <h4>Training Documents</h4>
+            <ul id="trainingDocuments" class="training-document-list"></ul>
+          </section>
+        </div>
+      </section>
+    </main>
+
+    <div id="attendanceModalBackdrop" class="modal-backdrop hidden" role="presentation">
+      <div class="modal training-attendance-modal" role="dialog" aria-modal="true" aria-labelledby="attendance-modal-title">
+        <div class="modal-header">
+          <h3 id="attendance-modal-title">Session Attendance</h3>
+          <button id="closeAttendanceModal" class="close-btn" aria-label="Close">✕</button>
+        </div>
+
+        <div class="attendance-content">
+          <p id="attendanceSessionInfo"></p>
+          <div class="attendance-stats">
+            <div class="attendance-stat-card">
+              <div class="kpi-label">Attended</div>
+              <div id="attendanceCount" class="kpi-value">0</div>
+            </div>
+            <div class="attendance-stat-card">
+              <div class="kpi-label">Absent</div>
+              <div id="absenceCount" class="kpi-value">0</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="trainings.js"></script>
+  </body>
+</html>

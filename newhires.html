@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>New Hires - HireSync</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="page-header">
+      <h1>HireSync</h1>
+      <nav class="tabs" aria-label="Main navigation">
+        <a class="tab" href="index.html">Homepage</a>
+        <a class="tab" href="calendar.html">Calendar</a>
+        <a class="tab active" href="newhires.html" aria-current="page">New Hires</a>
+        <a class="tab" href="data.html">Data</a>
+        <a class="tab" href="trainings.html">Trainings</a>
+        <a class="tab" href="settings.html">Settings</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="panel" aria-live="polite">
+        <div class="newhire-header-row">
+          <h2>New Hire Directory</h2>
+          <button id="addNewHireBtn" type="button" class="primary calendar-add-btn" aria-label="Add new hire">+</button>
+        </div>
+        <div class="directory-table-wrap">
+          <table class="newhire-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Employee Number</th>
+                <th>Department</th>
+              </tr>
+            </thead>
+            <tbody id="newHireRows"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <div id="newHireModalBackdrop" class="modal-backdrop hidden" role="presentation">
+      <div class="modal newhire-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <div class="modal-header">
+          <h3 id="modal-title">New Hire Profile</h3>
+          <button id="closeNewHireModal" class="close-btn" aria-label="Close">✕</button>
+        </div>
+
+        <form id="newHireForm" class="form-grid">
+          <label>
+            Name
+            <input id="hireName" name="hireName" required />
+          </label>
+
+          <label>
+            Employee Number
+            <input id="hireEmployeeNumber" name="hireEmployeeNumber" required />
+          </label>
+
+          <label>
+            Department
+            <input id="hireDepartment" name="hireDepartment" required />
+          </label>
+
+          <label>
+            Personal Phone Number
+            <input id="hirePersonalPhone" name="hirePersonalPhone" type="tel" placeholder="(555) 123-4567" />
+          </label>
+
+          <label>
+            Personal Email Address
+            <input id="hirePersonalEmail" name="hirePersonalEmail" type="email" placeholder="name@example.com" />
+          </label>
+
+          <label class="full-width checkbox-field">
+            <span>Mandatory Training Completed</span>
+            <input id="hireTrainingCompleted" name="hireTrainingCompleted" type="checkbox" />
+          </label>
+
+          <label>
+            RAID Color Scale
+            <input id="hireRaidScale" name="hireRaidScale" type="range" min="1" max="5" step="1" value="3" />
+            <div class="raid-scale-visual" aria-hidden="true">
+              <div id="hireRaidScaleMarker" class="raid-scale-marker"></div>
+            </div>
+            <div class="scale-labels" aria-hidden="true">
+              <span>Red</span>
+              <span>Amber</span>
+              <span>Green</span>
+              <span>Blue</span>
+              <span>Purple</span>
+            </div>
+            <small id="hireRaidColorDisplay">Selected: Green</small>
+          </label>
+
+          <label class="full-width">
+            Most Recent Resume Link
+            <input id="hireResumeUrl" name="hireResumeUrl" type="url" placeholder="https://..." />
+            <a id="hireResumePreview" class="resume-link" href="#" target="_blank" rel="noopener noreferrer">Open most recent resume</a>
+          </label>
+
+          <label class="full-width">
+            Notes
+            <textarea id="hireNotes" name="hireNotes" rows="4" placeholder="Add notes..."></textarea>
+          </label>
+
+          <label class="full-width">
+            Assessments
+            <textarea id="hireAssessments" name="hireAssessments" rows="4" placeholder="Add assessments..."></textarea>
+          </label>
+
+          <div class="full-width">
+            <div class="document-header">Documents</div>
+            <div class="document-input-row">
+              <input id="documentName" type="text" placeholder="Document name" />
+              <input id="documentUrl" type="url" placeholder="Document URL" />
+              <button id="addDocumentBtn" type="button" class="secondary">Add</button>
+            </div>
+            <div class="document-upload-row">
+              <input id="documentFile" type="file" />
+              <button id="uploadDocumentBtn" type="button" class="secondary">Upload File</button>
+            </div>
+            <ul id="documentList" class="document-list"></ul>
+          </div>
+
+          <div class="full-width">
+            <div class="history-header">Profile History</div>
+            <ul id="profileHistoryList" class="profile-history-list"></ul>
+          </div>
+
+          <div class="actions full-width">
+            <button type="button" id="cancelNewHireBtn" class="secondary">Cancel</button>
+            <button type="submit" class="primary">Save Profile</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script src="newhires.js"></script>
+  </body>
+</html>

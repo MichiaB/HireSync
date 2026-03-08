@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HireSync</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body data-default-tab="Homepage">
+    <header class="page-header">
+      <h1>HireSync</h1>
+      <nav class="tabs" aria-label="Main navigation">
+        <button class="tab active" data-tab="Homepage">Homepage</button>
+        <button class="tab" data-tab="Calendar">Calendar</button>
+        <button class="tab" data-tab="New Hires">New Hires</button>
+        <button class="tab" data-tab="Data">Data</button>
+        <button class="tab" data-tab="Trainings">Trainings</button>
+        <button class="tab" data-tab="Settings">Settings</button>
+      </nav>
+    </header>
+
+    <main>
+      <section class="panel" id="tab-content" aria-live="polite"></section>
+
+      <section class="panel" id="raid-insights-section">
+        <h2>RAID Distribution</h2>
+        <div class="raid-insights-layout">
+          <div class="raid-chart-wrap">
+            <canvas id="raidPieChart" width="420" height="420" aria-label="RAID color distribution chart"></canvas>
+            <div class="chart-hint">Click a slice for color details, or click the chart area for full breakdown.</div>
+          </div>
+          <div id="raidDrilldown" class="raid-drilldown hidden" aria-live="polite">
+            <h3 id="raidDrilldownTitle">RAID Details</h3>
+            <ul id="raidDrilldownList"></ul>
+          </div>
+        </div>
+      </section>
+
+      <section id="hire-list-section" class="hire-list-section">
+        <h2>New Hire Profiles</h2>
+        <div id="hire-list" class="hire-list"></div>
+      </section>
+    </main>
+
+    <div id="modal-backdrop" class="modal-backdrop hidden" role="presentation">
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <div class="modal-header">
+          <h3 id="modal-title">Edit New Hire Profile</h3>
+          <button id="close-modal" class="close-btn" aria-label="Close">✕</button>
+        </div>
+
+        <form id="hire-form" class="form-grid">
+          <label>
+            Name
+            <input id="name" name="name" required />
+          </label>
+
+          <label>
+            Employee Number
+            <input id="employeeNumber" name="employeeNumber" required />
+          </label>
+
+          <label>
+            Department
+            <input id="department" name="department" required />
+          </label>
+
+          <label>
+            RAID Color Scale
+            <input id="raidScale" name="raidScale" type="range" min="1" max="5" step="1" value="3" />
+            <div class="raid-scale-visual" aria-hidden="true">
+              <div id="raidScaleMarker" class="raid-scale-marker"></div>
+            </div>
+            <div class="scale-labels" aria-hidden="true">
+              <span>Red</span>
+              <span>Amber</span>
+              <span>Green</span>
+              <span>Blue</span>
+              <span>Purple</span>
+            </div>
+            <small id="raidColorDisplay">Selected: Green</small>
+          </label>
+
+          <label>
+            Status
+            <select id="status" name="status" required>
+              <option value="Onboarding">Onboarding</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Completed">Completed</option>
+              <option value="Blocked">Blocked</option>
+            </select>
+          </label>
+
+          <label class="full-width">
+            Comment
+            <textarea id="comment" name="comment" rows="4" placeholder="Add notes..."></textarea>
+          </label>
+
+          <div class="actions full-width">
+            <button type="button" id="cancel-btn" class="secondary">Cancel</button>
+            <button type="submit" class="primary">Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>

@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Settings - HireSync</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="page-header">
+      <h1>HireSync</h1>
+      <nav class="tabs" aria-label="Main navigation">
+        <a class="tab" href="index.html">Homepage</a>
+        <a class="tab" href="calendar.html">Calendar</a>
+        <a class="tab" href="newhires.html">New Hires</a>
+        <a class="tab" href="data.html">Data</a>
+        <a class="tab" href="trainings.html">Trainings</a>
+        <a class="tab active" href="settings.html" aria-current="page">Settings</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="panel" aria-live="polite">
+        <h2>Settings</h2>
+        <p>Configure your general preferences, notifications, display options, and data behavior.</p>
+      </section>
+
+      <section class="settings-layout">
+        <article class="panel settings-card">
+          <h3>General</h3>
+          <label>
+            Workspace Name
+            <input type="text" value="HireSync Team" />
+          </label>
+          <label>
+            Default Landing Tab
+            <select>
+              <option>Homepage</option>
+              <option>Calendar</option>
+              <option>New Hires</option>
+              <option>Data</option>
+              <option>Trainings</option>
+              <option>Settings</option>
+            </select>
+          </label>
+          <label>
+            Time Zone
+            <select>
+              <option>Local Browser Time</option>
+              <option>UTC</option>
+              <option>US Eastern</option>
+              <option>US Central</option>
+              <option>US Pacific</option>
+            </select>
+          </label>
+        </article>
+
+        <article class="panel settings-card">
+          <h3>Notifications</h3>
+          <label class="checkbox-field">
+            <span>Email Alerts for Training Gaps</span>
+            <input type="checkbox" checked />
+          </label>
+          <label class="checkbox-field">
+            <span>Weekly Summary Digest</span>
+            <input type="checkbox" checked />
+          </label>
+          <label class="checkbox-field">
+            <span>Calendar Reminder Popups</span>
+            <input type="checkbox" />
+          </label>
+        </article>
+
+        <article class="panel settings-card">
+          <h3>Display</h3>
+          <label>
+            Dashboard Density
+            <select>
+              <option>Comfortable</option>
+              <option>Compact</option>
+            </select>
+          </label>
+          <label>
+            Chart Refresh Interval
+            <select>
+              <option>Manual</option>
+              <option>Every 5 minutes</option>
+              <option>Every 15 minutes</option>
+              <option>Every 30 minutes</option>
+            </select>
+          </label>
+          <label class="checkbox-field">
+            <span>Show Advanced Tooltips</span>
+            <input type="checkbox" checked />
+          </label>
+        </article>
+
+        <article class="panel settings-card">
+          <h3>Data & Export</h3>
+          <label class="checkbox-field">
+            <span>Include Notes in Exports</span>
+            <input type="checkbox" checked />
+          </label>
+          <label class="checkbox-field">
+            <span>Include Assessments in Exports</span>
+            <input type="checkbox" checked />
+          </label>
+          <label>
+            Default Export Format
+            <select>
+              <option>CSV</option>
+              <option>JSON</option>
+            </select>
+          </label>
+        </article>
+      </section>
+
+      <section class="panel settings-actions">
+        <button class="secondary" type="button">Reset</button>
+        <button class="primary" type="button">Save Settings</button>
+      </section>
+    </main>
+  </body>
+</html>

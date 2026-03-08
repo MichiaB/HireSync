@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Calendar - HireSync</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="page-header">
+      <h1>HireSync</h1>
+      <nav class="tabs" aria-label="Main navigation">
+        <a class="tab" href="index.html">Homepage</a>
+        <a class="tab active" href="calendar.html" aria-current="page">Calendar</a>
+        <a class="tab" href="newhires.html">New Hires</a>
+        <a class="tab" href="data.html">Data</a>
+        <a class="tab" href="trainings.html">Trainings</a>
+        <a class="tab" href="settings.html">Settings</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="panel calendar-panel" aria-live="polite">
+        <div class="calendar-toolbar">
+          <div class="calendar-toolbar-left">
+            <button id="prevMonth" class="secondary" type="button">◀</button>
+            <h2 id="calendarMonthLabel">Calendar</h2>
+            <button id="nextMonth" class="secondary" type="button">▶</button>
+          </div>
+          <button id="calendarAddBtn" class="primary calendar-add-btn" type="button" aria-label="Add event">+</button>
+        </div>
+
+        <div class="calendar-weekdays" aria-hidden="true">
+          <span>Sun</span>
+          <span>Mon</span>
+          <span>Tue</span>
+          <span>Wed</span>
+          <span>Thu</span>
+          <span>Fri</span>
+          <span>Sat</span>
+        </div>
+
+        <div id="calendarGrid" class="calendar-grid"></div>
+      </section>
+    </main>
+
+    <div id="calendarModalBackdrop" class="modal-backdrop hidden" role="presentation">
+      <div class="modal calendar-modal" role="dialog" aria-modal="true" aria-labelledby="calendar-modal-title">
+        <div class="modal-header">
+          <h3 id="calendar-modal-title">Day Events</h3>
+          <button id="closeCalendarModal" class="close-btn" aria-label="Close">✕</button>
+        </div>
+
+        <div class="calendar-modal-layout">
+          <section>
+            <div class="calendar-events-header">
+              <h4 id="selectedDayLabel">Events</h4>
+              <div class="calendar-events-actions">
+                <button id="sendDayInviteBtn" class="secondary" type="button">Send Invite</button>
+                <button id="addEventBtn" class="primary" type="button">+ Add Another Event</button>
+              </div>
+            </div>
+            <ul id="dayEventsList" class="day-events-list"></ul>
+          </section>
+        </div>
+      </div>
+    </div>
+
+    <div id="eventModalBackdrop" class="modal-backdrop hidden" role="presentation">
+      <div class="modal event-detail-modal" role="dialog" aria-modal="true" aria-labelledby="event-modal-title">
+        <div class="modal-header">
+          <h3 id="event-modal-title">Event Details</h3>
+          <button id="closeEventModal" class="close-btn" aria-label="Close">✕</button>
+        </div>
+
+        <form id="calendarEventForm" class="form-grid">
+          <label>
+            Event Name
+            <input id="eventName" name="eventName" required />
+          </label>
+
+          <label>
+            Start Time
+            <input id="eventStartTime" name="eventStartTime" type="time" required />
+          </label>
+
+          <label>
+            End Time
+            <input id="eventEndTime" name="eventEndTime" type="time" required />
+          </label>
+
+          <label>
+            Start Date
+            <input id="eventStartDate" name="eventStartDate" type="date" required />
+          </label>
+
+          <label>
+            End Date
+            <input id="eventEndDate" name="eventEndDate" type="date" required />
+          </label>
+
+          <label>
+            Color Code
+            <input id="eventColorCode" name="eventColorCode" type="color" value="#58b9ff" />
+          </label>
+
+          <label class="full-width note-field">
+            Note
+            <textarea id="eventNote" name="eventNote" rows="5" placeholder="Enter event notes (max 200 words)"></textarea>
+            <small id="noteWordCount" class="note-word-count">0 / 200 words</small>
+          </label>
+
+          <div class="actions full-width">
+            <button type="button" id="sendEventInviteBtn" class="secondary">Send Invite</button>
+            <button type="button" id="deleteEventBtn" class="secondary">Delete</button>
+            <button type="submit" class="primary">Save Event</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script src="calendar.js"></script>
+  </body>
+</html>
