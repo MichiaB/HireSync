@@ -458,11 +458,44 @@ button.secondary {
 }
 
 .calendar-span-line {
-  height: 5px;
-  border-radius: 999px;
+  display: block;
+  font-size: 11px;
+  line-height: 1.2;
+  border-radius: 6px;
   background: var(--line-color, #58b9ff);
-  box-shadow: 0 0 10px color-mix(in srgb, var(--line-color, #58b9ff) 60%, transparent);
-  margin: 4px 0 2px;
+  box-shadow: 0 0 10px color-mix(in srgb, var(--line-color, #58b9ff) 40%, transparent);
+  margin-top: 4px;
+  color: #071225;
+  padding: 3px 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.calendar-day-events {
+  display: grid;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.calendar-day-event-chip {
+  display: block;
+  font-size: 11px;
+  line-height: 1.2;
+  color: var(--text);
+  border: 1px solid color-mix(in srgb, var(--event-color, #58b9ff) 50%, var(--border));
+  border-left: 3px solid var(--event-color, #58b9ff);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--event-color, #58b9ff) 12%, transparent);
+  padding: 2px 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.calendar-day-event-more {
+  font-size: 11px;
+  color: var(--muted);
 }
 
 .calendar-span-count {

@@ -122,6 +122,15 @@ function normalizeColor(value) {
   return /^#[0-9a-fA-F]{6}$/.test(color) ? color : '#58b9ff';
 }
 
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
+}
+
 function isDateWithinRange(targetDateKey, startDateKey, endDateKey) {
   return targetDateKey >= startDateKey && targetDateKey <= endDateKey;
 }
@@ -215,8 +224,10 @@ function renderCalendar() {
     const date = new Date(year, month, day);
     const dateKey = formatDateKey(date);
     const events = getEventsForCalendarDay(dateKey);
-    const spanningEvents = getSpanningEventsForDate(dateKey);
-    const spanningLineColor = spanningEvents[0]?.colorCode ?? '#58b9ff';
+    const firstEvent = events[0] ?? null;
+    const eventLineHtml = firstEvent
+      ? `<span class="calendar-span-line" style="--line-color: ${normalizeColor(firstEvent.colorCode)}">${escapeHtml(firstEvent.eventName)}</span>`
+      : '';
 
     const button = document.createElement('button');
     button.type = 'button';
@@ -228,11 +239,7 @@ function renderCalendar() {
 
     button.innerHTML = `
       <span class="calendar-day-number">${day}</span>
-      ${
-        spanningEvents.length
-          ? `<span class="calendar-span-line" style="--line-color: ${spanningLineColor}"></span>`
-          : ''
-      }
+      ${eventLineHtml}
     `;
 
     button.addEventListener('click', () => openDayModal(dateKey));
