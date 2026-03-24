@@ -25,6 +25,77 @@
         <p>Track completed, not completed, and in-progress trainings. Click a training to view session dates and attendance.</p>
       </section>
 
+      <section class="panel training-scheduler-panel" aria-labelledby="scheduleTrainingTitle">
+        <div class="training-scheduler-header">
+          <h3 id="scheduleTrainingTitle">Schedule Training</h3>
+          <p>Create a new training session and publish it to the calendar.</p>
+        </div>
+
+        <form id="scheduleTrainingForm" class="training-scheduler-form">
+          <label>
+            Training Name
+            <input id="scheduledTrainingName" name="scheduledTrainingName" type="text" required />
+          </label>
+
+          <label>
+            When (Date)
+            <input id="scheduledTrainingDate" name="scheduledTrainingDate" type="date" required />
+          </label>
+
+          <label>
+            Start Time
+            <input id="scheduledTrainingStartTime" name="scheduledTrainingStartTime" type="time" value="09:00" required />
+          </label>
+
+          <label>
+            Duration (Hours)
+            <input id="scheduledTrainingDuration" name="scheduledTrainingDuration" type="number" min="0.5" step="0.5" value="1" required />
+          </label>
+
+          <label>
+            Occurrence
+            <select id="scheduledTrainingOccurrence" name="scheduledTrainingOccurrence">
+              <option value="once">One Time</option>
+              <option value="weekly">Weekly</option>
+              <option value="biweekly">Every 2 Weeks</option>
+              <option value="monthly">Monthly</option>
+            </select>
+          </label>
+
+          <label>
+            Number of Sessions
+            <input id="scheduledTrainingSessionCount" name="scheduledTrainingSessionCount" type="number" min="1" max="24" value="1" required />
+          </label>
+
+          <label>
+            Training Color
+            <input id="scheduledTrainingColor" name="scheduledTrainingColor" type="color" value="#bf8dff" />
+          </label>
+
+          <label>
+            How Many Attended
+            <input id="scheduledTrainingAttended" name="scheduledTrainingAttended" type="number" min="0" step="1" value="0" required />
+          </label>
+
+          <label class="full-width">
+            Upload Documents
+            <input id="scheduledTrainingDocuments" name="scheduledTrainingDocuments" type="file" multiple />
+          </label>
+
+          <div class="actions full-width">
+            <button id="scheduleTrainingSubmitBtn" type="submit" class="primary">Schedule Training</button>
+            <button id="cancelScheduledTrainingEditBtn" type="button" class="secondary hidden">Cancel Edit</button>
+          </div>
+        </form>
+
+        <p id="scheduleTrainingFeedback" class="training-scheduler-feedback" aria-live="polite"></p>
+
+        <section class="scheduled-training-manager" aria-labelledby="scheduledTrainingManagerTitle">
+          <h4 id="scheduledTrainingManagerTitle">Scheduled Trainings</h4>
+          <ul id="scheduledTrainingManagerList" class="scheduled-training-list"></ul>
+        </section>
+      </section>
+
       <section class="trainings-layout">
         <article class="panel chart-panel">
           <h3>Training Status Overview</h3>
@@ -48,7 +119,17 @@
           </section>
 
           <section class="training-documents-box">
-            <h4>Training Documents</h4>
+            <div class="training-documents-header-row">
+              <h4>Training Documents</h4>
+              <button id="uploadTrainingDocumentsBtn" type="button" class="upload-training-docs-btn hidden">Upload Documents</button>
+            </div>
+            <input
+              id="trainingDocumentsUploadInput"
+              class="hidden"
+              type="file"
+              multiple
+              aria-label="Upload training documents"
+            />
             <ul id="trainingDocuments" class="training-document-list"></ul>
           </section>
         </div>

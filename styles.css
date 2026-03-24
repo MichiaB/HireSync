@@ -954,6 +954,111 @@ button.secondary {
   font-size: 13px;
 }
 
+.training-scheduler-panel {
+  display: grid;
+  gap: 12px;
+}
+
+.training-scheduler-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.training-scheduler-header h3 {
+  margin: 0;
+  color: var(--primary);
+}
+
+.training-scheduler-header p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.training-scheduler-form {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+#scheduledTrainingColor {
+  inline-size: 100%;
+  block-size: 40px;
+  padding: 4px;
+}
+
+.training-scheduler-feedback {
+  margin: 0;
+  color: #9fe2b7;
+  font-size: 13px;
+}
+
+.training-scheduler-feedback.error {
+  color: #ff9c9c;
+}
+
+.scheduled-training-manager {
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+}
+
+.scheduled-training-manager h4 {
+  margin: 0 0 10px;
+  color: var(--muted);
+}
+
+.scheduled-training-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.scheduled-training-item {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: rgba(12, 26, 52, 0.68);
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.scheduled-training-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.scheduled-training-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.scheduled-training-meta {
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+.scheduled-training-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.scheduled-training-empty {
+  color: var(--muted);
+  font-size: 13px;
+}
+
 .trainings-layout {
   display: grid;
   grid-template-columns: minmax(320px, 420px) 1fr;
@@ -1016,6 +1121,35 @@ button.secondary {
 .training-documents-box h4 {
   margin: 0 0 10px;
   color: var(--muted);
+}
+
+.training-documents-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.training-documents-header-row h4 {
+  margin: 0;
+}
+
+.upload-training-docs-btn {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(21, 66, 120, 0.95), rgba(43, 141, 255, 0.95));
+  color: #f3f9ff;
+  padding: 6px 10px;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.upload-training-docs-btn:hover {
+  border-color: #56caff;
+  box-shadow: var(--glow);
 }
 
 .session-date-list,
@@ -1141,6 +1275,15 @@ button.secondary {
 
   .trainings-layout {
     grid-template-columns: 1fr;
+  }
+
+  .training-scheduler-form {
+    grid-template-columns: 1fr;
+  }
+
+  .scheduled-training-item {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   .training-detail-grid,

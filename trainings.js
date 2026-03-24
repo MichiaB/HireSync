@@ -3,6 +3,23 @@ const trainingList = document.getElementById('trainingList');
 const trainingDetailTitle = document.getElementById('trainingDetailTitle');
 const trainingSessionDates = document.getElementById('trainingSessionDates');
 const trainingDocuments = document.getElementById('trainingDocuments');
+const uploadTrainingDocumentsBtn = document.getElementById('uploadTrainingDocumentsBtn');
+const trainingDocumentsUploadInput = document.getElementById('trainingDocumentsUploadInput');
+
+const scheduleTrainingForm = document.getElementById('scheduleTrainingForm');
+const scheduledTrainingNameInput = document.getElementById('scheduledTrainingName');
+const scheduledTrainingDateInput = document.getElementById('scheduledTrainingDate');
+const scheduledTrainingStartTimeInput = document.getElementById('scheduledTrainingStartTime');
+const scheduledTrainingDurationInput = document.getElementById('scheduledTrainingDuration');
+const scheduledTrainingOccurrenceInput = document.getElementById('scheduledTrainingOccurrence');
+const scheduledTrainingSessionCountInput = document.getElementById('scheduledTrainingSessionCount');
+const scheduledTrainingColorInput = document.getElementById('scheduledTrainingColor');
+const scheduledTrainingAttendedInput = document.getElementById('scheduledTrainingAttended');
+const scheduledTrainingDocumentsInput = document.getElementById('scheduledTrainingDocuments');
+const scheduleTrainingFeedback = document.getElementById('scheduleTrainingFeedback');
+const scheduleTrainingSubmitBtn = document.getElementById('scheduleTrainingSubmitBtn');
+const cancelScheduledTrainingEditBtn = document.getElementById('cancelScheduledTrainingEditBtn');
+const scheduledTrainingManagerList = document.getElementById('scheduledTrainingManagerList');
 
 const attendanceModalBackdrop = document.getElementById('attendanceModalBackdrop');
 const closeAttendanceModal = document.getElementById('closeAttendanceModal');
@@ -11,6 +28,7 @@ const attendanceCount = document.getElementById('attendanceCount');
 const absenceCount = document.getElementById('absenceCount');
 
 const CALENDAR_STORAGE_KEY = 'hiresyce_calendar_events_v1';
+const SCHEDULED_TRAINING_STORAGE_KEY = 'hiresyce_scheduled_trainings_v1';
 
 const defaultTrainingData = [
   {
@@ -96,6 +114,49 @@ const statusColors = {
 let selectedStatusFilter = null;
 let selectedTrainingId = null;
 let chartBars = [];
+let editingScheduledTrainingId = null;
+
+const SECURITY_AWARENESS_COMPLETED_TITLE = 'Security Awareness Training';
+
+function normalizeColor(value) {
+  const color = String(value || '').trim();
+  return /^#[0-9a-fA-F]{6}$/.test(color) ? color : '#bf8dff';
+}
+
+function inferDocumentType(file) {
+  if (!file) return 'file';
+
+  const mimeType = String(file.type || '').toLowerCase();
+  if (mimeType.includes('pdf')) return 'pdf';
+  if (mimeType.includes('presentation') || mimeType.includes('powerpoint')) return 'ppt';
+  if (mimeType.includes('spreadsheet') || mimeType.includes('excel')) return 'excel';
+  if (mimeType.includes('word')) return 'word';
+  if (mimeType.startsWith('video/')) return 'video';
+  if (mimeType.startsWith('audio/')) return 'audio';
+
+  const extension = file.name.split('.').pop()?.toLowerCase() || '';
+  if (extension === 'pdf') return 'pdf';
+  if (['ppt', 'pptx'].includes(extension)) return 'ppt';
+  if (['xls', 'xlsx', 'csv'].includes(extension)) return 'excel';
+  if (['doc', 'docx'].includes(extension)) return 'word';
+  if (['mp4', 'mov', 'avi', 'webm'].includes(extension)) return 'video';
+  if (['mp3', 'wav', 'm4a'].includes(extension)) return 'audio';
+
+  return extension || 'file';
+}
+
+function isSecurityAwarenessCompleted(training) {
+  return training && training.title === SECURITY_AWARENESS_COMPLETED_TITLE && training.status === 'Completed';
+}
+
+function toggleSecurityUploadControls(training) {
+  if (isSecurityAwarenessCompleted(training)) {
+    uploadTrainingDocumentsBtn.classList.remove('hidden');
+  } else {
+    uploadTrainingDocumentsBtn.classList.add('hidden');
+    trainingDocumentsUploadInput.value = '';
+  }
+}
 
 function loadCalendarEvents() {
   const raw = localStorage.getItem(CALENDAR_STORAGE_KEY);
@@ -112,12 +173,65 @@ function loadCalendarEvents() {
   }
 }
 
+function saveCalendarEvents(calendarEvents) {
+  localStorage.setItem(CALENDAR_STORAGE_KEY, JSON.stringify(calendarEvents));
+}
+
+function loadScheduledTrainings() {
+  const raw = localStorage.getItem(SCHEDULED_TRAINING_STORAGE_KEY);
+  if (!raw) return [];
+
+  try {
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+
+    return parsed
+      .filter((training) => training && typeof training === 'object')
+      .map((training) => ({
+        id: String(training.id || `scheduled-${crypto.randomUUID()}`),
+        title: String(training.title || '').trim(),
+        status: statusOrder.includes(training.status) ? training.status : 'In Progress',
+        occurrence: String(training.occurrence || 'once'),
+        startTime: String(training.startTime || '09:00'),
+        durationHours: Number.isFinite(Number(training.durationHours)) ? Number(training.durationHours) : 1,
+        sessionCount: Number.isFinite(Number(training.sessionCount)) ? Number(training.sessionCount) : 1,
+        attended: Number.isFinite(Number(training.attended)) ? Number(training.attended) : 0,
+        colorCode: normalizeColor(training.colorCode),
+        sessions: Array.isArray(training.sessions)
+          ? training.sessions
+              .filter((session) => session && typeof session === 'object' && session.date)
+              .map((session) => ({
+                date: String(session.date),
+                attended: Number.isFinite(Number(session.attended)) ? Number(session.attended) : 0,
+                absent: Number.isFinite(Number(session.absent)) ? Number(session.absent) : 0,
+              }))
+          : [],
+        documents: Array.isArray(training.documents)
+          ? training.documents
+              .filter((document) => document && typeof document === 'object' && document.name)
+              .map((document) => ({
+                name: String(document.name),
+                type: String(document.type || 'file'),
+                url: String(document.url || '#'),
+              }))
+          : [],
+      }))
+      .filter((training) => training.title.length > 0);
+  } catch {
+    return [];
+  }
+}
+
+function saveScheduledTrainings(trainings) {
+  localStorage.setItem(SCHEDULED_TRAINING_STORAGE_KEY, JSON.stringify(trainings));
+}
+
 function dedupeSessions(sessions) {
   const unique = [];
   const seen = new Set();
 
   sessions.forEach((session) => {
-    const key = `${session.date}-${session.attended}-${session.absent}`;
+    const key = String(session.date);
     if (seen.has(key)) return;
     seen.add(key);
     unique.push(session);
@@ -188,7 +302,364 @@ function mergeTrainingData(baseTrainings, calendarDerivedTrainings) {
   return merged;
 }
 
-const trainingData = mergeTrainingData(defaultTrainingData, deriveTrainingsFromCalendarEvents());
+let scheduledTrainingData = loadScheduledTrainings();
+let trainingData = [];
+
+scheduledTrainingData = scheduledTrainingData.map((training) => {
+  const sessionDates = (training.sessions || []).map((session) => session.date);
+  return {
+    ...training,
+    status: deriveDefaultStatus(training.occurrence, sessionDates),
+  };
+});
+saveScheduledTrainings(scheduledTrainingData);
+
+function rebuildTrainingData() {
+  trainingData = mergeTrainingData(
+    mergeTrainingData(defaultTrainingData, scheduledTrainingData),
+    deriveTrainingsFromCalendarEvents()
+  );
+}
+
+syncScheduledTrainingsToCalendar();
+rebuildTrainingData();
+
+function parseTimeToMinutes(timeValue) {
+  const [hours, minutes] = String(timeValue || '09:00').split(':').map(Number);
+  return hours * 60 + minutes;
+}
+
+function formatMinutesToTime(totalMinutes) {
+  const normalized = ((totalMinutes % 1440) + 1440) % 1440;
+  const hours = String(Math.floor(normalized / 60)).padStart(2, '0');
+  const minutes = String(normalized % 60).padStart(2, '0');
+  return `${hours}:${minutes}`;
+}
+
+function addDays(date, days) {
+  const next = new Date(date);
+  next.setDate(next.getDate() + days);
+  return next;
+}
+
+function addMonths(date, months) {
+  const next = new Date(date);
+  next.setMonth(next.getMonth() + months);
+  return next;
+}
+
+function createRecurringSessionDates(startDateString, occurrence, sessionCount) {
+  const startDate = new Date(`${startDateString}T00:00:00`);
+  if (Number.isNaN(startDate.getTime())) return [];
+
+  const dates = [];
+  for (let index = 0; index < sessionCount; index += 1) {
+    let date;
+
+    if (occurrence === 'weekly') {
+      date = addDays(startDate, index * 7);
+    } else if (occurrence === 'biweekly') {
+      date = addDays(startDate, index * 14);
+    } else if (occurrence === 'monthly') {
+      date = addMonths(startDate, index);
+    } else {
+      date = addDays(startDate, index);
+    }
+
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    dates.push(`${year}-${month}-${day}`);
+  }
+
+  return dates;
+}
+
+function deriveTrainingStatusFromSessions(sessionDates) {
+  const today = new Date();
+  const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const hasFuture = sessionDates.some((dateString) => new Date(`${dateString}T00:00:00`) >= todayStart);
+  return hasFuture ? 'In Progress' : 'Completed';
+}
+
+function deriveDefaultStatus(occurrence, sessionDates) {
+  if (occurrence === 'once' && sessionDates.length === 1) {
+    const today = new Date();
+    const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const oneTimeDate = new Date(`${sessionDates[0]}T00:00:00`);
+    return oneTimeDate < todayStart ? 'Completed' : 'Not Completed';
+  }
+
+  return deriveTrainingStatusFromSessions(sessionDates);
+}
+
+function buildScheduledTrainingPayload(formValues, existingTraining = null) {
+  const sessionDates = createRecurringSessionDates(formValues.date, formValues.occurrence, formValues.sessionCount);
+  const sessions = sessionDates.map((sessionDate) => ({
+    date: sessionDate,
+    attended: formValues.attended,
+    absent: 0,
+  }));
+
+  const existingDocuments = existingTraining?.documents || [];
+  const documents = [
+    ...existingDocuments,
+    ...formValues.uploadedFiles.map((file) => ({
+      name: file.name,
+      type: inferDocumentType(file),
+      url: URL.createObjectURL(file),
+    })),
+  ];
+
+  return {
+    id: existingTraining?.id || `scheduled-${crypto.randomUUID()}`,
+    title: formValues.title,
+    status: deriveDefaultStatus(formValues.occurrence, sessionDates),
+    occurrence: formValues.occurrence,
+    startTime: formValues.startTime,
+    durationHours: formValues.durationHours,
+    sessionCount: formValues.sessionCount,
+    attended: formValues.attended,
+    colorCode: normalizeColor(formValues.colorCode),
+    sessions,
+    documents,
+  };
+}
+
+function getEndTimeFromDuration(startTime, durationHours) {
+  return formatMinutesToTime(parseTimeToMinutes(startTime) + Math.round(durationHours * 60));
+}
+
+function syncScheduledTrainingsToCalendar() {
+  const calendarEvents = loadCalendarEvents();
+
+  Object.keys(calendarEvents).forEach((dateKey) => {
+    const filtered = (calendarEvents[dateKey] || []).filter(
+      (event) => String(event.sourceType || '') !== 'scheduled-training'
+    );
+
+    if (filtered.length === 0) {
+      delete calendarEvents[dateKey];
+      return;
+    }
+
+    calendarEvents[dateKey] = filtered;
+  });
+
+  scheduledTrainingData.forEach((training) => {
+    const endTime = getEndTimeFromDuration(training.startTime, training.durationHours);
+    const sessionDates = (training.sessions || []).map((session) => session.date);
+
+    sessionDates.forEach((dateKey, index) => {
+      if (!Array.isArray(calendarEvents[dateKey])) {
+        calendarEvents[dateKey] = [];
+      }
+
+      const notePrefix =
+        training.occurrence === 'once' ? 'One-time training session' : `Recurring training (${training.occurrence})`;
+      calendarEvents[dateKey].push({
+        id: crypto.randomUUID(),
+        eventName: training.title,
+        startDate: dateKey,
+        endDate: dateKey,
+        startTime: training.startTime,
+        endTime,
+        colorCode: normalizeColor(training.colorCode),
+        note: `${notePrefix} • Session ${index + 1} • Attended: ${training.attended}`,
+        sourceType: 'scheduled-training',
+        sourceTrainingId: training.id,
+      });
+    });
+  });
+
+  saveCalendarEvents(calendarEvents);
+}
+
+function renderScheduledTrainingManager() {
+  scheduledTrainingManagerList.innerHTML = '';
+
+  if (scheduledTrainingData.length === 0) {
+    scheduledTrainingManagerList.innerHTML =
+      '<li class="scheduled-training-empty">No scheduled trainings yet. Use the form above to create one.</li>';
+    return;
+  }
+
+  const sorted = [...scheduledTrainingData].sort((left, right) => {
+    const leftDate = left.sessions?.[0]?.date || '';
+    const rightDate = right.sessions?.[0]?.date || '';
+    return leftDate.localeCompare(rightDate);
+  });
+
+  sorted.forEach((training) => {
+    const firstDate = training.sessions?.[0]?.date || 'n/a';
+    const listItem = document.createElement('li');
+    listItem.className = 'scheduled-training-item';
+
+    listItem.innerHTML = `
+      <div class="scheduled-training-main">
+        <span class="scheduled-training-dot" style="background:${normalizeColor(training.colorCode)}"></span>
+        <div>
+          <strong>${training.title}</strong>
+          <div class="scheduled-training-meta">${firstDate} • ${training.occurrence} • ${training.sessionCount} session(s)</div>
+        </div>
+      </div>
+      <div class="scheduled-training-actions">
+        <button type="button" class="secondary" data-action="edit" data-training-id="${training.id}">Edit</button>
+        <button type="button" class="secondary" data-action="delete" data-training-id="${training.id}">Delete</button>
+      </div>
+    `;
+
+    scheduledTrainingManagerList.appendChild(listItem);
+  });
+}
+
+function setEditingMode(training = null) {
+  if (!training) {
+    editingScheduledTrainingId = null;
+    scheduleTrainingSubmitBtn.textContent = 'Schedule Training';
+    cancelScheduledTrainingEditBtn.classList.add('hidden');
+    return;
+  }
+
+  editingScheduledTrainingId = training.id;
+  scheduleTrainingSubmitBtn.textContent = 'Update Training';
+  cancelScheduledTrainingEditBtn.classList.remove('hidden');
+}
+
+function fillScheduleFormFromTraining(training) {
+  const firstDate = training.sessions?.[0]?.date || '';
+  scheduledTrainingNameInput.value = training.title;
+  scheduledTrainingDateInput.value = firstDate;
+  scheduledTrainingStartTimeInput.value = training.startTime;
+  scheduledTrainingDurationInput.value = String(training.durationHours);
+  scheduledTrainingOccurrenceInput.value = training.occurrence;
+  scheduledTrainingSessionCountInput.value = String(training.sessionCount);
+  scheduledTrainingColorInput.value = normalizeColor(training.colorCode);
+  scheduledTrainingAttendedInput.value = String(training.attended);
+}
+
+function removeScheduledTraining(trainingId) {
+  scheduledTrainingData = scheduledTrainingData.filter((training) => training.id !== trainingId);
+  saveScheduledTrainings(scheduledTrainingData);
+  syncScheduledTrainingsToCalendar();
+  rebuildTrainingData();
+
+  if (editingScheduledTrainingId === trainingId) {
+    resetScheduleTrainingForm();
+  }
+}
+
+function resetScheduleTrainingForm() {
+  scheduleTrainingForm.reset();
+  scheduledTrainingStartTimeInput.value = '09:00';
+  scheduledTrainingDurationInput.value = '1';
+  scheduledTrainingSessionCountInput.value = '1';
+  scheduledTrainingOccurrenceInput.value = 'once';
+  scheduledTrainingColorInput.value = '#bf8dff';
+  scheduledTrainingAttendedInput.value = '0';
+  setEditingMode(null);
+}
+
+function setScheduleFeedback(message, isError = false) {
+  scheduleTrainingFeedback.textContent = message;
+  scheduleTrainingFeedback.classList.toggle('error', isError);
+}
+
+function handleScheduledTrainingManagerClick(event) {
+  const button = event.target.closest('button[data-action]');
+  if (!button) return;
+
+  const action = button.getAttribute('data-action');
+  const trainingId = button.getAttribute('data-training-id');
+  if (!action || !trainingId) return;
+
+  if (action === 'edit') {
+    const selected = scheduledTrainingData.find((training) => training.id === trainingId);
+    if (!selected) return;
+
+    fillScheduleFormFromTraining(selected);
+    setEditingMode(selected);
+    setScheduleFeedback(`Editing ${selected.title}. Update fields and click Update Training.`);
+    return;
+  }
+
+  if (action === 'delete') {
+    const selected = scheduledTrainingData.find((training) => training.id === trainingId);
+    if (!selected) return;
+
+    removeScheduledTraining(trainingId);
+
+    if (selectedTrainingId === trainingId) {
+      selectedTrainingId = null;
+    }
+
+    renderStatusChart();
+    renderTrainingList();
+    renderScheduledTrainingManager();
+    setScheduleFeedback(`Deleted scheduled training: ${selected.title}.`);
+  }
+}
+
+function handleCancelScheduledTrainingEdit() {
+  resetScheduleTrainingForm();
+  setScheduleFeedback('Edit cancelled. You can schedule a new training.');
+}
+
+function handleScheduleTrainingSubmit(event) {
+  event.preventDefault();
+
+  const title = String(scheduledTrainingNameInput.value || '').trim();
+  const date = String(scheduledTrainingDateInput.value || '');
+  const startTime = String(scheduledTrainingStartTimeInput.value || '09:00');
+  const durationHours = Number(scheduledTrainingDurationInput.value || 0);
+  const occurrence = String(scheduledTrainingOccurrenceInput.value || 'once');
+  const sessionCount = Math.max(1, Number(scheduledTrainingSessionCountInput.value || 1));
+  const attended = Math.max(0, Number(scheduledTrainingAttendedInput.value || 0));
+  const colorCode = normalizeColor(scheduledTrainingColorInput.value);
+  const uploadedFiles = Array.from(scheduledTrainingDocumentsInput.files || []);
+
+  if (!title || !date || !startTime || !Number.isFinite(durationHours) || durationHours <= 0) {
+    setScheduleFeedback('Please complete all required schedule fields.', true);
+    return;
+  }
+
+  const existingTraining = scheduledTrainingData.find((training) => training.id === editingScheduledTrainingId) || null;
+  const payload = buildScheduledTrainingPayload(
+    { title, date, startTime, durationHours, occurrence, sessionCount, attended, colorCode, uploadedFiles },
+    existingTraining
+  );
+
+  if (payload.sessions.length === 0) {
+    setScheduleFeedback('Unable to schedule this training. Check the selected date.', true);
+    return;
+  }
+
+  const existingIndex = scheduledTrainingData.findIndex((training) => training.id === payload.id);
+  if (existingIndex === -1) {
+    scheduledTrainingData.push(payload);
+  } else {
+    scheduledTrainingData.splice(existingIndex, 1, payload);
+  }
+
+  saveScheduledTrainings(scheduledTrainingData);
+  syncScheduledTrainingsToCalendar();
+  rebuildTrainingData();
+
+  selectedStatusFilter = null;
+  selectedTrainingId = null;
+  const selectedTraining = trainingData.find((training) => training.title.toLowerCase() === payload.title.toLowerCase());
+  if (selectedTraining) {
+    selectedTrainingId = selectedTraining.id;
+  }
+
+  renderStatusChart();
+  renderTrainingList();
+  renderScheduledTrainingManager();
+
+  const modeLabel = editingScheduledTrainingId ? 'Updated' : 'Scheduled';
+  resetScheduleTrainingForm();
+  setScheduleFeedback(`${modeLabel} ${payload.title} and synced it to Calendar.`);
+}
 
 function getStatusCounts() {
   return statusOrder.map((status) => ({
@@ -318,10 +789,12 @@ function renderTrainingDetails(trainingId) {
     trainingDetailTitle.textContent = 'Training Details';
     trainingSessionDates.innerHTML = '<li class="training-empty">Select a training to view details.</li>';
     trainingDocuments.innerHTML = '<li class="training-empty">No documents available.</li>';
+    toggleSecurityUploadControls(null);
     return;
   }
 
   trainingDetailTitle.textContent = `${training.title} (${training.status})`;
+  toggleSecurityUploadControls(training);
 
   trainingSessionDates.innerHTML = '';
   training.sessions.forEach((session) => {
@@ -346,6 +819,38 @@ function renderTrainingDetails(trainingId) {
     `;
     trainingDocuments.appendChild(item);
   });
+
+  if (training.documents.length === 0) {
+    trainingDocuments.innerHTML = '<li class="training-empty">No documents available.</li>';
+  }
+}
+
+function handleUploadTrainingDocumentsClick() {
+  const selectedTraining = trainingData.find((entry) => entry.id === selectedTrainingId);
+  if (!isSecurityAwarenessCompleted(selectedTraining)) return;
+  trainingDocumentsUploadInput.click();
+}
+
+function handleTrainingDocumentsUpload(event) {
+  const selectedTraining = trainingData.find((entry) => entry.id === selectedTrainingId);
+  if (!isSecurityAwarenessCompleted(selectedTraining)) {
+    trainingDocumentsUploadInput.value = '';
+    return;
+  }
+
+  const files = Array.from(event.target.files || []);
+  if (files.length === 0) return;
+
+  files.forEach((file) => {
+    selectedTraining.documents.push({
+      name: file.name,
+      type: inferDocumentType(file),
+      url: URL.createObjectURL(file),
+    });
+  });
+
+  trainingDocumentsUploadInput.value = '';
+  renderTrainingDetails(selectedTraining.id);
 }
 
 function openAttendanceModal(trainingTitle, session) {
@@ -384,6 +889,11 @@ function handleStatusChartClick(event) {
 
 trainingOverviewChart.addEventListener('click', handleStatusChartClick);
 closeAttendanceModal.addEventListener('click', closeAttendancePopup);
+uploadTrainingDocumentsBtn.addEventListener('click', handleUploadTrainingDocumentsClick);
+trainingDocumentsUploadInput.addEventListener('change', handleTrainingDocumentsUpload);
+scheduleTrainingForm.addEventListener('submit', handleScheduleTrainingSubmit);
+scheduledTrainingManagerList.addEventListener('click', handleScheduledTrainingManagerClick);
+cancelScheduledTrainingEditBtn.addEventListener('click', handleCancelScheduledTrainingEdit);
 attendanceModalBackdrop.addEventListener('click', (event) => {
   if (event.target === attendanceModalBackdrop) {
     closeAttendancePopup();
@@ -392,3 +902,4 @@ attendanceModalBackdrop.addEventListener('click', (event) => {
 
 renderStatusChart();
 renderTrainingList();
+renderScheduledTrainingManager();
