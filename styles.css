@@ -1059,6 +1059,57 @@ button.secondary {
   font-size: 13px;
 }
 
+.training-export-panel {
+  display: grid;
+  gap: 10px;
+}
+
+.training-export-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.training-export-panel h3 {
+  margin: 0;
+  color: var(--primary);
+}
+
+.training-export-form {
+  display: grid;
+  gap: 10px;
+}
+
+.training-export-quick-ranges {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.training-export-range-btn {
+  font-size: 12px;
+  padding: 6px 10px;
+}
+
+.training-export-controls {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr 1fr 0.8fr auto;
+  gap: 10px;
+  align-items: end;
+}
+
+.training-export-submit-btn {
+  min-height: 40px;
+}
+
+.training-export-match-count {
+  color: var(--muted);
+  font-size: 13px;
+}
+
 .trainings-layout {
   display: grid;
   grid-template-columns: minmax(320px, 420px) 1fr;
@@ -1279,6 +1330,19 @@ button.secondary {
 
   .training-scheduler-form {
     grid-template-columns: 1fr;
+  }
+
+  .training-export-form {
+    grid-template-columns: 1fr;
+  }
+
+  .training-export-controls {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .training-export-submit-btn {
+    width: 100%;
   }
 
   .scheduled-training-item {

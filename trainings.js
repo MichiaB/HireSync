@@ -20,6 +20,13 @@ const scheduleTrainingFeedback = document.getElementById('scheduleTrainingFeedba
 const scheduleTrainingSubmitBtn = document.getElementById('scheduleTrainingSubmitBtn');
 const cancelScheduledTrainingEditBtn = document.getElementById('cancelScheduledTrainingEditBtn');
 const scheduledTrainingManagerList = document.getElementById('scheduledTrainingManagerList');
+const trainingExportForm = document.getElementById('trainingExportForm');
+const trainingExportTimeframeInput = document.getElementById('trainingExportTimeframe');
+const trainingExportFromDateInput = document.getElementById('trainingExportFromDate');
+const trainingExportToDateInput = document.getElementById('trainingExportToDate');
+const trainingExportFormatInput = document.getElementById('trainingExportFormat');
+const trainingExportMatchCount = document.getElementById('trainingExportMatchCount');
+const trainingExportQuickRangeButtons = Array.from(document.querySelectorAll('.training-export-range-btn'));
 
 const attendanceModalBackdrop = document.getElementById('attendanceModalBackdrop');
 const closeAttendanceModal = document.getElementById('closeAttendanceModal');
@@ -121,6 +128,13 @@ const SECURITY_AWARENESS_COMPLETED_TITLE = 'Security Awareness Training';
 function normalizeColor(value) {
   const color = String(value || '').trim();
   return /^#[0-9a-fA-F]{6}$/.test(color) ? color : '#bf8dff';
+}
+
+function formatDateKey(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 function inferDocumentType(file) {
@@ -475,6 +489,244 @@ function syncScheduledTrainingsToCalendar() {
   saveCalendarEvents(calendarEvents);
 }
 
+function getDateRangeFromPreset(preset) {
+  const today = new Date();
+  const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+  if (preset === 'last30') {
+    const fromDate = addDays(todayStart, -29);
+    return { fromDate: formatDateKey(fromDate), toDate: formatDateKey(todayStart) };
+  }
+
+  if (preset === 'currentMonth') {
+    const first = new Date(todayStart.getFullYear(), todayStart.getMonth(), 1);
+    const last = new Date(todayStart.getFullYear(), todayStart.getMonth() + 1, 0);
+    return { fromDate: formatDateKey(first), toDate: formatDateKey(last) };
+  }
+
+  return { fromDate: '', toDate: '' };
+}
+
+function getDateRangeFromQuickRange(rangeKey) {
+  const today = new Date();
+  const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+  if (rangeKey === 'today') {
+    const dateKey = formatDateKey(todayStart);
+    return { fromDate: dateKey, toDate: dateKey };
+  }
+
+  if (rangeKey === 'thisWeek') {
+    const dayOfWeek = todayStart.getDay();
+    const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+    const weekStart = addDays(todayStart, mondayOffset);
+    const weekEnd = addDays(weekStart, 6);
+    return { fromDate: formatDateKey(weekStart), toDate: formatDateKey(weekEnd) };
+  }
+
+  if (rangeKey === 'thisQuarter') {
+    const month = todayStart.getMonth();
+    const quarterStartMonth = Math.floor(month / 3) * 3;
+    const quarterStart = new Date(todayStart.getFullYear(), quarterStartMonth, 1);
+    const quarterEnd = new Date(todayStart.getFullYear(), quarterStartMonth + 3, 0);
+    return { fromDate: formatDateKey(quarterStart), toDate: formatDateKey(quarterEnd) };
+  }
+
+  return { fromDate: '', toDate: '' };
+}
+
+function applyTrainingExportQuickRange(rangeKey) {
+  const range = getDateRangeFromQuickRange(rangeKey);
+  trainingExportTimeframeInput.value = 'custom';
+  trainingExportFromDateInput.disabled = false;
+  trainingExportToDateInput.disabled = false;
+  trainingExportFromDateInput.value = range.fromDate;
+  trainingExportToDateInput.value = range.toDate;
+  updateTrainingExportMatchCount();
+}
+
+function handleTrainingExportQuickRangeClick(event) {
+  const button = event.currentTarget;
+  const rangeKey = button.getAttribute('data-quick-range');
+  if (!rangeKey) return;
+  applyTrainingExportQuickRange(rangeKey);
+}
+
+function applyTrainingExportPreset() {
+  const preset = trainingExportTimeframeInput.value;
+  const isCustom = preset === 'custom';
+
+  trainingExportFromDateInput.disabled = !isCustom;
+  trainingExportToDateInput.disabled = !isCustom;
+
+  if (isCustom) {
+    updateTrainingExportMatchCount();
+    return;
+  }
+
+  const range = getDateRangeFromPreset(preset);
+  trainingExportFromDateInput.value = range.fromDate;
+  trainingExportToDateInput.value = range.toDate;
+  updateTrainingExportMatchCount();
+}
+
+function getTrainingExportRange() {
+  const preset = trainingExportTimeframeInput.value;
+
+  if (preset === 'all') {
+    return { fromDate: '', toDate: '' };
+  }
+
+  if (preset === 'custom') {
+    return {
+      fromDate: String(trainingExportFromDateInput.value || ''),
+      toDate: String(trainingExportToDateInput.value || ''),
+    };
+  }
+
+  return getDateRangeFromPreset(preset);
+}
+
+function isSessionInDateRange(dateKey, range) {
+  if (!range.fromDate && !range.toDate) return true;
+  if (range.fromDate && dateKey < range.fromDate) return false;
+  if (range.toDate && dateKey > range.toDate) return false;
+  return true;
+}
+
+function buildTrainingExportRows() {
+  const range = getTrainingExportRange();
+  const rows = [];
+
+  trainingData.forEach((training) => {
+    const source = String(training.id).startsWith('scheduled-')
+      ? 'Scheduled'
+      : String(training.id).startsWith('calendar-')
+        ? 'Calendar'
+        : 'Catalog';
+
+    const startTime = String(training.startTime || 'n/a');
+    const durationHours = Number.isFinite(Number(training.durationHours)) ? Number(training.durationHours) : null;
+    const endTime = durationHours !== null && startTime !== 'n/a' ? getEndTimeFromDuration(startTime, durationHours) : 'n/a';
+    const docs = Array.isArray(training.documents) ? training.documents.map((document) => document.name).join(' | ') : '';
+
+    (training.sessions || []).forEach((session) => {
+      const sessionDate = String(session.date || '');
+      if (!sessionDate || !isSessionInDateRange(sessionDate, range)) return;
+
+      rows.push({
+        title: training.title,
+        status: training.status,
+        source,
+        occurrence: training.occurrence || 'n/a',
+        sessionDate,
+        startTime,
+        endTime,
+        durationHours: durationHours ?? 'n/a',
+        attended: Number.isFinite(Number(session.attended)) ? Number(session.attended) : 0,
+        absent: Number.isFinite(Number(session.absent)) ? Number(session.absent) : 0,
+        colorCode: normalizeColor(training.colorCode),
+        documentCount: Array.isArray(training.documents) ? training.documents.length : 0,
+        documents: docs,
+      });
+    });
+  });
+
+  return rows.sort((left, right) => {
+    if (left.sessionDate === right.sessionDate) {
+      return left.title.localeCompare(right.title);
+    }
+    return left.sessionDate.localeCompare(right.sessionDate);
+  });
+}
+
+function updateTrainingExportMatchCount() {
+  const rows = buildTrainingExportRows();
+  trainingExportMatchCount.textContent = `Matching records: ${rows.length}`;
+}
+
+function convertTrainingRowsToCsv(rows) {
+  const headers = [
+    'Training Title',
+    'Status',
+    'Source',
+    'Occurrence',
+    'Session Date',
+    'Start Time',
+    'End Time',
+    'Duration Hours',
+    'Attended',
+    'Absent',
+    'Color',
+    'Document Count',
+    'Documents',
+  ];
+
+  const lines = [headers.join(',')];
+
+  rows.forEach((row) => {
+    const values = [
+      row.title,
+      row.status,
+      row.source,
+      row.occurrence,
+      row.sessionDate,
+      row.startTime,
+      row.endTime,
+      row.durationHours,
+      row.attended,
+      row.absent,
+      row.colorCode,
+      row.documentCount,
+      row.documents,
+    ].map((value) => `"${String(value).replaceAll('"', '""')}"`);
+
+    lines.push(values.join(','));
+  });
+
+  return lines.join('\n');
+}
+
+function downloadTrainingFile(fileName, content, mimeType) {
+  const blob = new Blob([content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = fileName;
+  anchor.click();
+  URL.revokeObjectURL(url);
+}
+
+function handleTrainingExportSubmit(event) {
+  event.preventDefault();
+
+  const rows = buildTrainingExportRows();
+  if (rows.length === 0) {
+    setScheduleFeedback('No training rows match this timeframe. Adjust the date range and try again.', true);
+    return;
+  }
+
+  const timestamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
+  const format = trainingExportFormatInput.value;
+
+  if (format === 'json') {
+    downloadTrainingFile(
+      `hiresyce-training-export-${timestamp}.json`,
+      JSON.stringify(rows, null, 2),
+      'application/json;charset=utf-8'
+    );
+    setScheduleFeedback(`Exported ${rows.length} training record(s) as JSON.`);
+    return;
+  }
+
+  downloadTrainingFile(
+    `hiresyce-training-export-${timestamp}.csv`,
+    convertTrainingRowsToCsv(rows),
+    'text/csv;charset=utf-8'
+  );
+  setScheduleFeedback(`Exported ${rows.length} training record(s) as CSV.`);
+}
+
 function renderScheduledTrainingManager() {
   scheduledTrainingManagerList.innerHTML = '';
 
@@ -596,6 +848,7 @@ function handleScheduledTrainingManagerClick(event) {
     renderStatusChart();
     renderTrainingList();
     renderScheduledTrainingManager();
+    updateTrainingExportMatchCount();
     setScheduleFeedback(`Deleted scheduled training: ${selected.title}.`);
   }
 }
@@ -655,6 +908,7 @@ function handleScheduleTrainingSubmit(event) {
   renderStatusChart();
   renderTrainingList();
   renderScheduledTrainingManager();
+  updateTrainingExportMatchCount();
 
   const modeLabel = editingScheduledTrainingId ? 'Updated' : 'Scheduled';
   resetScheduleTrainingForm();
@@ -894,6 +1148,13 @@ trainingDocumentsUploadInput.addEventListener('change', handleTrainingDocumentsU
 scheduleTrainingForm.addEventListener('submit', handleScheduleTrainingSubmit);
 scheduledTrainingManagerList.addEventListener('click', handleScheduledTrainingManagerClick);
 cancelScheduledTrainingEditBtn.addEventListener('click', handleCancelScheduledTrainingEdit);
+trainingExportForm.addEventListener('submit', handleTrainingExportSubmit);
+trainingExportTimeframeInput.addEventListener('change', applyTrainingExportPreset);
+trainingExportFromDateInput.addEventListener('change', updateTrainingExportMatchCount);
+trainingExportToDateInput.addEventListener('change', updateTrainingExportMatchCount);
+trainingExportQuickRangeButtons.forEach((button) => {
+  button.addEventListener('click', handleTrainingExportQuickRangeClick);
+});
 attendanceModalBackdrop.addEventListener('click', (event) => {
   if (event.target === attendanceModalBackdrop) {
     closeAttendancePopup();
@@ -903,3 +1164,5 @@ attendanceModalBackdrop.addEventListener('click', (event) => {
 renderStatusChart();
 renderTrainingList();
 renderScheduledTrainingManager();
+applyTrainingExportPreset();
+updateTrainingExportMatchCount();

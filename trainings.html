@@ -25,6 +25,53 @@
         <p>Track completed, not completed, and in-progress trainings. Click a training to view session dates and attendance.</p>
       </section>
 
+      <section class="panel training-export-panel" aria-labelledby="trainingExportTitle">
+        <div class="training-export-header">
+          <h3 id="trainingExportTitle">Export Training Data</h3>
+          <span id="trainingExportMatchCount" class="training-export-match-count">Matching records: 0</span>
+        </div>
+
+        <form id="trainingExportForm" class="training-export-form">
+          <div class="training-export-quick-ranges" aria-label="Quick timeframe selection">
+            <button type="button" class="secondary training-export-range-btn" data-quick-range="today">Today</button>
+            <button type="button" class="secondary training-export-range-btn" data-quick-range="thisWeek">This Week</button>
+            <button type="button" class="secondary training-export-range-btn" data-quick-range="thisQuarter">This Quarter</button>
+          </div>
+
+          <div class="training-export-controls">
+            <label>
+              Range
+              <select id="trainingExportTimeframe" name="trainingExportTimeframe">
+                <option value="all">All Time</option>
+                <option value="last30">Last 30 Days</option>
+                <option value="currentMonth">Current Month</option>
+                <option value="custom">Custom</option>
+              </select>
+            </label>
+
+            <label>
+              From
+              <input id="trainingExportFromDate" name="trainingExportFromDate" type="date" />
+            </label>
+
+            <label>
+              To
+              <input id="trainingExportToDate" name="trainingExportToDate" type="date" />
+            </label>
+
+            <label>
+              Format
+              <select id="trainingExportFormat" name="trainingExportFormat">
+                <option value="csv">CSV</option>
+                <option value="json">JSON</option>
+              </select>
+            </label>
+
+            <button type="submit" class="primary training-export-submit-btn">Export</button>
+          </div>
+        </form>
+      </section>
+
       <section class="panel training-scheduler-panel" aria-labelledby="scheduleTrainingTitle">
         <div class="training-scheduler-header">
           <h3 id="scheduleTrainingTitle">Schedule Training</h3>
